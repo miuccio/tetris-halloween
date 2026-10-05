@@ -2,14 +2,15 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  touch-action: manipulation; /* Previene il doppio tap zoom su mobile */
-  user-select: none; /* Impedisce la selezione del testo mentre si gioca */
+  touch-action: manipulation;
+  user-select: none;
 }
 
 body {
-  background-color: #0f0f12;
+  background: #08070c;
+  background-image: radial-gradient(circle at center, #1a102f 0%, #050408 100%);
   color: #ff7518;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Roboto', sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -21,105 +22,136 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
-  background-color: #1a1a24;
-  padding: 15px;
-  border: 2px solid #ff7518;
-  border-radius: 16px;
-  box-shadow: 0 0 20px rgba(255, 117, 24, 0.3);
-  max-width: 400px;
+  gap: 12px;
+  background: linear-gradient(180deg, #181528 0%, #0d0b18 100%);
+  padding: 18px;
+  border: 3px solid #3c1e5d;
+  border-radius: 20px;
+  box-shadow: 0 0 35px rgba(157, 78, 221, 0.35), inset 0 0 15px rgba(0,0,0,0.8);
+  max-width: 420px;
   width: 100%;
 }
 
-.header-mobile {
-  width: 100%;
+.logo-container {
   text-align: center;
+}
+
+.halloween-title {
+  font-family: 'Creepster', cursive;
+  font-size: 2.2rem;
+  line-height: 1;
+  color: #ff7518;
+  text-shadow: 0 0 10px #ff7518, 0 0 20px #e04800, 3px 3px 0px #000;
+  letter-spacing: 2px;
+}
+
+.main-layout {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+canvas#tetris {
+  background-color: #0b0914;
+  border: 3px solid #4a2875;
+  border-radius: 10px;
+  box-shadow: inset 0 0 15px #000;
+}
+
+.sidebar-panel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  width: 100px;
 }
 
-h1 {
-  font-size: 1.2rem;
-  color: #ff7518;
-  text-shadow: 0 0 8px #ff7518;
-}
-
-.stats-inline {
-  display: flex;
-  justify-content: space-around;
-  font-size: 0.9rem;
-  color: #d1d1e0;
-  background: #0b0b0e;
-  padding: 8px;
+.stat-box {
+  background: #120e24;
+  border: 2px solid #3c1e5d;
   border-radius: 8px;
-  border: 1px solid #3c096c;
+  padding: 6px;
+  text-align: center;
+  box-shadow: inset 0 0 8px #000;
 }
 
-.stats-inline b {
-  color: #9d4edd;
+.stat-box label {
+  display: block;
+  font-size: 0.65rem;
+  color: #a38ec2;
+  letter-spacing: 1px;
 }
 
-#start-btn {
-  background-color: #ff7518;
-  color: #0f0f12;
-  border: none;
-  padding: 10px;
+.stat-box span {
+  font-size: 1.1rem;
   font-weight: bold;
-  font-size: 1rem;
+  color: #ff7518;
+  text-shadow: 0 0 5px rgba(255,117,24,0.5);
+}
+
+.next-box canvas {
+  margin-top: 4px;
+  background: #080611;
+  border-radius: 6px;
+}
+
+.gothic-btn {
+  background: linear-gradient(180deg, #ff7518 0%, #b34700 100%);
+  color: #000;
+  border: 1px solid #ff9d5c;
+  padding: 10px 4px;
+  font-family: 'Creepster', cursive;
+  font-size: 1.1rem;
   cursor: pointer;
   border-radius: 8px;
+  box-shadow: 0 4px 0 #4a1a00;
+  transition: 0.1s;
 }
 
-#start-btn:active {
-  background-color: #9d4edd;
-  color: #fff;
+.gothic-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #4a1a00;
 }
 
-canvas {
-  background-color: #0b0b0e;
-  border: 2px solid #3c096c;
-  border-radius: 8px;
-  max-width: 100%;
-  height: auto;
-}
-
-/* Pulsanti Touch */
+/* Pulsanti Touch stile screenshot */
 .touch-controls {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: 5px;
 }
 
 .touch-row {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .touch-btn {
   flex: 1;
-  background-color: #2b2b3d;
+  background: linear-gradient(180deg, #2a2244 0%, #151026 100%);
   color: #ff7518;
-  border: 1px solid #ff7518;
-  padding: 14px 0;
-  font-size: 1.2rem;
-  font-weight: bold;
-  border-radius: 10px;
+  border: 2px solid #5a3291;
+  padding: 12px 0;
+  font-size: 1.3rem;
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 4px 0 #0f0f12;
+  box-shadow: 0 4px 0 #0a0714, 0 0 10px rgba(157, 78, 221, 0.2);
 }
 
 .touch-btn:active {
   transform: translateY(2px);
-  box-shadow: 0 2px 0 #0f0f12;
-  background-color: #9d4edd;
+  box-shadow: 0 2px 0 #0a0714;
+  background: #9d4edd;
   color: #fff;
 }
 
 .drop-btn {
-  background-color: #ff7518;
-  color: #0f0f12;
-  font-size: 0.9rem;
+  background: linear-gradient(180deg, #38245c 0%, #1c1033 100%);
+  color: #ff9d5c;
+  font-size: 0.85rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  border-color: #7b42c9;
 }
