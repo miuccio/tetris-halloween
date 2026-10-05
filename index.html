@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Halloween Tetris 🎃</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <div class="header-mobile">
+      <h1>HALLOWEEN TETRIS 🎃</h1>
+      <div class="stats-inline">
+        <span>Punti: <b id="score">0</b></span>
+        <span>Liv: <b id="level">1</b></span>
+        <span>Righe: <b id="lines">0</b></span>
+      </div>
+      <button id="start-btn">Gioca / Pausa</button>
+    </div>
+
+    <canvas id="tetris" width="240" height="400"></canvas>
+
+    <!-- Controlli Touch per Smartphone -->
+    <div class="touch-controls">
+      <div class="touch-row">
+        <button class="touch-btn" id="btn-rotate">🔄 Ruota</button>
+      </div>
+      <div class="touch-row">
+        <button class="touch-btn" id="btn-left">⬅️</button>
+        <button class="touch-btn" id="btn-down">⬇️</button>
+        <button class="touch-btn" id="btn-right">➡️</button>
+      </div>
+      <div class="touch-row">
+        <button class="touch-btn drop-btn" id="btn-drop">⚡ Caduta Rapida</button>
+      </div>
+    </div>
+  </div>
+  <script src="tetris.js"></script>
+</body>
+</html>
