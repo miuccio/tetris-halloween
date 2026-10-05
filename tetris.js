@@ -366,8 +366,10 @@ document.getElementById('btn-drop').addEventListener('pointerdown', (e) => { e.p
 
 document.getElementById('start-btn').addEventListener('click', () => {
   isPaused = !isPaused;
+
   if (!isPaused) {
     if (!player.matrix) playerReset();
+
     lastTime = performance.now();
     update();
 
@@ -375,6 +377,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
       bgMusic.volume = 0.4;
       bgMusic.play().catch(e => console.log("Autoplay bloccato:", e));
     }
+
   } else {
     if (bgMusic) {
       bgMusic.pause();
