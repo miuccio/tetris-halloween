@@ -2,26 +2,31 @@ const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 context.scale(20, 20);
 
-const COLORS = [
+const nextCanvas = document.getElementById('next');
+const nextContext = nextCanvas.getContext('2d');
+nextContext.scale(20, 20);
+
+// Temi e Icone Halloween per ciascun pezzo
+const THEMES = [
   null,
-  '#ff7518', // Zucca
-  '#9d4edd', // Viola Strega
-  '#38b000', // Verde Melma
-  '#f72585', // Rosa Sangue
-  '#4cc9f0', // Blu Fantasma
-  '#ffb703', // Candela Gialla
-  '#7209b7'
+  { bg: '#3a0ca3', border: '#7209b7', icon: '🎃' }, // Zucca
+  { bg: '#2b9348', border: '#55a630', icon: '🦴' }, // Osso
+  { bg: '#d90429', border: '#ef233c', icon: '🦇' }, // Pipistrello
+  { bg: '#ffb703', border: '#fb8500', icon: '🕯️' }, // Candela
+  { bg: '#7209b7', border: '#f72585', icon: '👻' }, // Fantasma
+  { bg: '#10002b', border: '#3c096c', icon: '🪦' }, // Tomba
+  { bg: '#0077b6', border: '#00b4d8', icon: '🕷️' }  // Ragno
 ];
 
 const PIECES = [
   [],
-  [[0,1,0],[1,1,1],[0,0,0]],
-  [[2,2],[2,2]],
-  [[0,3,3],[3,3,0],[0,0,0]],
-  [[4,4,0],[0,4,4],[0,0,0]],
-  [[0,0,5],[5,5,5],[0,0,0]],
-  [[6,0,0],[6,6,6],[0,0,0]],
-  [[0,7,0,0],[0,7,0,0],[0,7,0,0],[0,7,0,0]]
+  [[0,1,0],[1,1,1],[0,0,0]], // T
+  [[2,2],[2,2]],             // O
+  [[0,3,3],[3,3,0],[0,0,0]], // S
+  [[4,4,0],[0,4,4],[0,0,0]], // Z
+  [[0,0,5],[5,5,5],[0,0,0]], // L
+  [[6,0,0],[6,6,6],[0,0,0]], // J
+  [[0,7,0,0],[0,7,0,0],[0,7,0,0],[0,7,0,0]] // I
 ];
 
 function createMatrix(w, h) {
@@ -34,6 +39,7 @@ const arena = createMatrix(12, 20);
 const player = {
   pos: {x: 0, y: 0},
   matrix: null,
+  next: null,
   score: 0,
   level: 1,
   lines: 0
@@ -43,6 +49,53 @@ let dropCounter = 0;
 let dropInterval = 1000;
 let lastTime = 0;
 let isPaused = true;
+
+function drawTile(ctx, x, y, value) {
+  const theme = THEMES[value];
+  if (!theme) return;
+
+  // Sfondo quadratino
+  ctx.fillStyle = theme.bg;
+  ctx.fillRect(x, y, 1, 1);
+
+  // Bordo interno stilizzato
+  ctx.strokeStyle = theme.border;
+  ctx.lineWidth = 0.08;
+  ctx.strokeRect(x + 0.04, y + 0.04, 0.92, 0.92);
+
+  // Icona Halloween al centro del blocco
+  ctx.font = '0.65px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(theme.icon, x + 0.5, y + 0.55);
+}
+
+function drawMatrix(matrix, offset, ctx = context) {
+  matrix.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value !== 0) {
+        drawTile(ctx, x + offset.x, y + offset.y, value);
+      }
+    });
+  });
+}
+
+function drawNext() {
+  nextContext.fillStyle = '#080611';
+  nextContext.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+  if (player.next) {
+    const xOffset = (4 - player.next[0].length) / 2;
+    const yOffset = (4 - player.next.length) / 2;
+    drawMatrix(player.next, {x: xOffset, y: yOffset}, nextContext);
+  }
+}
+
+function draw() {
+  context.fillStyle = '#0b0914';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  drawMatrix(arena, {x: 0, y: 0});
+  if (player.matrix) drawMatrix(player.matrix, player.pos);
+}
 
 function arenaSweep() {
   let rowCount = 1;
@@ -77,27 +130,6 @@ function collide(arena, player) {
     }
   }
   return false;
-}
-
-function drawMatrix(matrix, offset) {
-  matrix.forEach((row, y) => {
-    row.forEach((value, x) => {
-      if (value !== 0) {
-        context.fillStyle = COLORS[value];
-        context.fillRect(x + offset.x, y + offset.y, 1, 1);
-        context.lineWidth = 0.05;
-        context.strokeStyle = '#000';
-        context.strokeRect(x + offset.x, y + offset.y, 1, 1);
-      }
-    });
-  });
-}
-
-function draw() {
-  context.fillStyle = '#0b0b0e';
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  drawMatrix(arena, {x: 0, y: 0});
-  if (player.matrix) drawMatrix(player.matrix, player.pos);
 }
 
 function merge(arena, player) {
@@ -138,11 +170,19 @@ function playerMove(dir) {
   }
 }
 
-function playerReset() {
+function getRandomPiece() {
   const id = (Math.random() * (PIECES.length - 1) | 0) + 1;
-  player.matrix = PIECES[id];
+  return PIECES[id];
+}
+
+function playerReset() {
+  if (!player.next) player.next = getRandomPiece();
+  player.matrix = player.next;
+  player.next = getRandomPiece();
   player.pos.y = 0;
   player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
+
+  drawNext();
 
   if (collide(arena, player)) {
     arena.forEach(row => row.fill(0));
@@ -200,7 +240,7 @@ function updateStats() {
   document.getElementById('lines').innerText = player.lines;
 }
 
-// Controlli da Tastiera (PC)
+// Eventi tastiera e touch
 document.addEventListener('keydown', event => {
   if (isPaused) return;
   if (event.keyCode === 37) playerMove(-1);
@@ -210,14 +250,11 @@ document.addEventListener('keydown', event => {
   else if (event.keyCode === 32) playerHardDrop();
 });
 
-// Controlli Touch (Mobile)
 document.getElementById('btn-left').addEventListener('pointerdown', (e) => { e.preventDefault(); playerMove(-1); });
 document.getElementById('btn-right').addEventListener('pointerdown', (e) => { e.preventDefault(); playerMove(1); });
-document.getElementById('btn-down').addEventListener('pointerdown', (e) => { e.preventDefault(); playerDrop(); });
 document.getElementById('btn-rotate').addEventListener('pointerdown', (e) => { e.preventDefault(); playerRotate(1); });
 document.getElementById('btn-drop').addEventListener('pointerdown', (e) => { e.preventDefault(); playerHardDrop(); });
 
-// Tasto Start / Pausa
 document.getElementById('start-btn').addEventListener('click', () => {
   isPaused = !isPaused;
   if (!isPaused) {
