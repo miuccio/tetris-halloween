@@ -5,36 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Halloween Tetris 🎃</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Roboto:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="game-container">
-    <div class="header-mobile">
-      <h1>HALLOWEEN TETRIS 🎃</h1>
-      <div class="stats-inline">
-        <span>Punti: <b id="score">0</b></span>
-        <span>Liv: <b id="level">1</b></span>
-        <span>Righe: <b id="lines">0</b></span>
-      </div>
-      <button id="start-btn">Gioca / Pausa</button>
+    <div class="logo-container">
+      <h1 class="halloween-title">HALLOWEEN<br>TETRIS 🎃</h1>
     </div>
 
-    <canvas id="tetris" width="240" height="400"></canvas>
+    <div class="main-layout">
+      <!-- Area di gioco -->
+      <canvas id="tetris" width="240" height="400"></canvas>
 
-    <!-- Controlli Touch per Smartphone -->
+      <!-- Sidebar stile anteprima -->
+      <div class="sidebar-panel">
+        <div class="stat-box">
+          <label>SCORE</label>
+          <span id="score">0</span>
+        </div>
+        <div class="stat-box">
+          <label>LEVEL</label>
+          <span id="level">1</span>
+        </div>
+        <div class="stat-box">
+          <label>LINES</label>
+          <span id="lines">0</span>
+        </div>
+        <div class="stat-box next-box">
+          <label>NEXT</label>
+          <canvas id="next" width="80" height="80"></canvas>
+        </div>
+
+        <button id="start-btn" class="gothic-btn">PLAY / PAUSE</button>
+      </div>
+    </div>
+
+    <!-- Controlli Touch Mobile -->
     <div class="touch-controls">
       <div class="touch-row">
-        <button class="touch-btn" id="btn-rotate">🔄 Ruota</button>
-      </div>
-      <div class="touch-row">
         <button class="touch-btn" id="btn-left">⬅️</button>
-        <button class="touch-btn" id="btn-down">⬇️</button>
         <button class="touch-btn" id="btn-right">➡️</button>
+        <button class="touch-btn" id="btn-rotate">🔄</button>
       </div>
       <div class="touch-row">
-        <button class="touch-btn drop-btn" id="btn-drop">⚡ Caduta Rapida</button>
+        <button class="touch-btn drop-btn" id="btn-drop">SPACE (DROP)</button>
       </div>
     </div>
   </div>
+
   <script src="tetris.js"></script>
 </body>
 </html>
