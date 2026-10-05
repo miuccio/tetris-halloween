@@ -6,16 +6,16 @@ const nextCanvas = document.getElementById('next');
 const nextContext = nextCanvas.getContext('2d');
 nextContext.scale(20, 20);
 
-// Temi, Bordi e Icone Halloween per ciascun pezzo
+// Configurazioni Grafiche dei Pezzi
 const THEMES = [
   null,
-  { bg: '#1c102b', border: '#ff7518', icon: '🎃' }, // Zucca
-  { bg: '#10241b', border: '#38b000', icon: '🦴' }, // Osso
-  { bg: '#2b101c', border: '#f72585', icon: '🦇' }, // Pipistrello
-  { bg: '#292010', border: '#ffb703', icon: '💀' }, // Teschio
-  { bg: '#1c1738', border: '#9d4edd', icon: '👻' }, // Fantasma
-  { bg: '#0d1829', border: '#4cc9f0', icon: '🕷️' }, // Ragno
-  { bg: '#18181c', border: '#a0a0b0', icon: '🪦' }  // Tomba
+  { bg: '#2b1405', border: '#ff7518', type: 'pumpkin' },  // Zucca
+  { bg: '#10241b', border: '#38b000', type: 'bone' },     // Osso
+  { bg: '#2b1022', border: '#f72585', type: 'bat' },      // Pipistrello
+  { bg: '#292310', border: '#ffb703', type: 'skull' },    // Teschio
+  { bg: '#18122e', border: '#9d4edd', type: 'ghost' },    // Fantasma
+  { bg: '#0d1c29', border: '#4cc9f0', type: 'spider' },   // Ragno
+  { bg: '#1c1c24', border: '#a0a0b0', type: 'tomb' }     // Tomba
 ];
 
 const PIECES = [
@@ -50,29 +50,125 @@ let dropInterval = 1000;
 let lastTime = 0;
 let isPaused = true;
 
+// Disegno vettoriale personalizzato per ciascun tipo di icona
+function drawShape(ctx, x, y, type, color) {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 0.05;
+
+  if (type === 'pumpkin') {
+    // Zucca: Cerchio arancio con occhi a triangolo e bocca intagliata
+    ctx.beginPath();
+    ctx.arc(x + 0.5, y + 0.55, 0.32, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Picciolo verde
+    ctx.fillStyle = '#38b000';
+    ctx.fillRect(x + 0.45, y + 0.15, 0.1, 0.12);
+
+    // Occhi e bocca neri
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.moveTo(x + 0.3, y + 0.45); ctx.lineTo(x + 0.4, y + 0.45); ctx.lineTo(x + 0.35, y + 0.38); ctx.closePath();
+    ctx.moveTo(x + 0.6, y + 0.45); ctx.lineTo(x + 0.7, y + 0.45); ctx.lineTo(x + 0.65, y + 0.38); ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + 0.5, y + 0.6, 0.18, 0, Math.PI);
+    ctx.stroke();
+
+  } else if (type === 'skull') {
+    // Teschio: Testa rotonda con cavità oculari e denti
+    ctx.beginPath();
+    ctx.arc(x + 0.5, y + 0.42, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x + 0.38, y + 0.62, 0.24, 0.16);
+
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(x + 0.38, y + 0.42, 0.08, 0, Math.PI * 2);
+    ctx.arc(x + 0.62, y + 0.42, 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x + 0.42, y + 0.68, 0.04, 0.1);
+    ctx.fillRect(x + 0.54, y + 0.68, 0.04, 0.1);
+
+  } else if (type === 'ghost') {
+    // Fantasma: Corpo a dente con occhi
+    ctx.beginPath();
+    ctx.arc(x + 0.5, y + 0.4, 0.28, Math.PI, 0);
+    ctx.lineTo(x + 0.78, y + 0.75);
+    ctx.lineTo(x + 0.64, y + 0.65);
+    ctx.lineTo(x + 0.5, y + 0.75);
+    ctx.lineTo(x + 0.36, y + 0.65);
+    ctx.lineTo(x + 0.22, y + 0.75);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(x + 0.4, y + 0.38, 0.05, 0, Math.PI * 2);
+    ctx.arc(x + 0.6, y + 0.38, 0.05, 0, Math.PI * 2);
+    ctx.fill();
+
+  } else if (type === 'bat') {
+    // Pipistrello: Ali spiegate
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, y + 0.45);
+    ctx.quadraticCurveTo(x + 0.2, y + 0.2, x + 0.15, y + 0.5);
+    ctx.quadraticCurveTo(x + 0.35, y + 0.6, x + 0.5, y + 0.75);
+    ctx.quadraticCurveTo(x + 0.65, y + 0.6, x + 0.85, y + 0.5);
+    ctx.quadraticCurveTo(x + 0.8, y + 0.2, x + 0.5, y + 0.45);
+    ctx.fill();
+
+  } else if (type === 'bone') {
+    // Osso incrociato
+    ctx.lineWidth = 0.12;
+    ctx.beginPath();
+    ctx.moveTo(x + 0.25, y + 0.25); ctx.lineTo(x + 0.75, y + 0.75);
+    ctx.moveTo(x + 0.75, y + 0.25); ctx.lineTo(x + 0.25, y + 0.75);
+    ctx.stroke();
+
+  } else if (type === 'spider') {
+    // Ragnetto
+    ctx.beginPath();
+    ctx.arc(x + 0.5, y + 0.5, 0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = 0.05;
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, y + 0.5); ctx.lineTo(x + 0.2, y + 0.3);
+    ctx.moveTo(x + 0.5, y + 0.5); ctx.lineTo(x + 0.8, y + 0.3);
+    ctx.moveTo(x + 0.5, y + 0.5); ctx.lineTo(x + 0.2, y + 0.7);
+    ctx.moveTo(x + 0.5, y + 0.5); ctx.lineTo(x + 0.8, y + 0.7);
+    ctx.stroke();
+
+  } else if (type === 'tomb') {
+    // Pietra tombale
+    ctx.beginPath();
+    ctx.arc(x + 0.5, y + 0.35, 0.25, Math.PI, 0);
+    ctx.lineTo(x + 0.75, y + 0.8);
+    ctx.lineTo(x + 0.25, y + 0.8);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 function drawTile(ctx, x, y, value) {
   const theme = THEMES[value];
   if (!theme) return;
 
-  // 1. Sfondo scuro del singolo blocco
+  // 1. Sfondo del singolo blocco
   ctx.fillStyle = theme.bg;
   ctx.fillRect(x, y, 1, 1);
 
-  // 2. Bordo fluorescente luminoso
+  // 2. Bordo fluorescente
   ctx.strokeStyle = theme.border;
   ctx.lineWidth = 0.08;
   ctx.strokeRect(x + 0.04, y + 0.04, 0.92, 0.92);
 
-  // 3. Disegno dell'icona Halloween bene in evidenza
-  ctx.save();
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 0.68px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  
-  // Posizionamento centrale
-  ctx.fillText(theme.icon, x + 0.5, y + 0.53);
-  ctx.restore();
+  // 3. Disegno della forma vettoriale di Halloween
+  drawShape(ctx, x, y, theme.type, theme.border);
 }
 
 function drawMatrix(matrix, offset, ctx = context) {
