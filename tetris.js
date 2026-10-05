@@ -15,11 +15,11 @@ const THEMES = [
   null,
   { bg: '#2b1405', border: '#ff7518', type: 'pumpkin' }, // Zucca
   { bg: '#10241b', border: '#38b000', type: 'bone' },    // Osso
-  { bg: '#2b1022', border: '#f72585', type: 'bat' },     // Pipistrello
-  { bg: '#292310', border: '#ffb703', type: 'skull' },   // Teschio
-  { bg: '#18122e', border: '#9d4edd', type: 'ghost' },   // Fantasma
+  { bg: '#2b1022', border: '#f72585', type: 'bat' },      // Pipistrello
+  { bg: '#292310', border: '#ffb703', type: 'skull' },    // Teschio
+  { bg: '#18122e', border: '#9d4edd', type: 'ghost' },    // Fantasma
   { bg: '#0d1c29', border: '#4cc9f0', type: 'spider' },  // Ragno
-  { bg: '#1c1c24', border: '#a0a0b0', type: 'tomb' }    // Tomba
+  { bg: '#1c1c24', border: '#a0a0b0', type: 'tomb' }     // Tomba
 ];
 
 const PIECES = [
@@ -386,3 +386,8 @@ document.getElementById('start-btn').addEventListener('click', () => {
 });
 
 updateStats();
+
+// Inizializzazione: prepara il primo pezzo di anteprima e disegna subito la griglia vuota
+player.next = getRandomPiece();
+drawNext();
+draw();
