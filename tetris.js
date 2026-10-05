@@ -4,6 +4,9 @@ const context = canvas.getContext('2d');
 const nextCanvas = document.getElementById('next');
 const nextContext = nextCanvas.getContext('2d');
 
+// Elemento Audio per la musica di sottofondo
+const bgMusic = document.getElementById('bg-music');
+
 // Dimensione in pixel di ogni singolo blocco
 const BLOCK_SIZE = 20;
 
@@ -367,6 +370,15 @@ document.getElementById('start-btn').addEventListener('click', () => {
     if (!player.matrix) playerReset();
     lastTime = performance.now();
     update();
+
+    if (bgMusic) {
+      bgMusic.volume = 0.4;
+      bgMusic.play().catch(e => console.log("Autoplay bloccato:", e));
+    }
+  } else {
+    if (bgMusic) {
+      bgMusic.pause();
+    }
   }
 });
 
