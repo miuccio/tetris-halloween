@@ -304,6 +304,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
     update();
 
     if (bgMusic) {
+      bgMusic.loop = true; // <-- Attiva il loop qui
       bgMusic.volume = 0.4;
       bgMusic.play().catch(e => console.log("Autoplay bloccato:", e));
     }
