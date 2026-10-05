@@ -1,21 +1,22 @@
 const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
-context.scale(20, 20);
 
 const nextCanvas = document.getElementById('next');
 const nextContext = nextCanvas.getContext('2d');
-nextContext.scale(20, 20);
 
-// Configurazioni Grafiche dei Pezzi
+// Dimensione in pixel di ogni singolo blocco
+const BLOCK_SIZE = 20;
+
+// Temi e icone per ciascun pezzo
 const THEMES = [
   null,
-  { bg: '#2b1405', border: '#ff7518', type: 'pumpkin' },  // Zucca
-  { bg: '#10241b', border: '#38b000', type: 'bone' },     // Osso
-  { bg: '#2b1022', border: '#f72585', type: 'bat' },      // Pipistrello
-  { bg: '#292310', border: '#ffb703', type: 'skull' },    // Teschio
-  { bg: '#18122e', border: '#9d4edd', type: 'ghost' },    // Fantasma
-  { bg: '#0d1c29', border: '#4cc9f0', type: 'spider' },   // Ragno
-  { bg: '#1c1c24', border: '#a0a0b0', type: 'tomb' }     // Tomba
+  { bg: '#2b1405', border: '#ff7518', type: 'pumpkin' }, // Zucca
+  { bg: '#10241b', border: '#38b000', type: 'bone' },    // Osso
+  { bg: '#2b1022', border: '#f72585', type: 'bat' },     // Pipistrello
+  { bg: '#292310', border: '#ffb703', type: 'skull' },   // Teschio
+  { bg: '#18122e', border: '#9d4edd', type: 'ghost' },   // Fantasma
+  { bg: '#0d1c29', border: '#4cc9f0', type: 'spider' },  // Ragno
+  { bg: '#1c1c24', border: '#a0a0b0', type: 'tomb' }    // Tomba
 ];
 
 const PIECES = [
@@ -50,103 +51,104 @@ let dropInterval = 1000;
 let lastTime = 0;
 let isPaused = true;
 
-// Disegno vettoriale personalizzato per ciascun tipo di icona
-function drawShape(ctx, x, y, type, color) {
+// Disegno delle icone in pixel reali
+function drawShape(ctx, px, py, type, color) {
+  const s = BLOCK_SIZE;
   ctx.save();
   ctx.fillStyle = color;
   ctx.strokeStyle = color;
-  ctx.lineWidth = 0.05;
+  ctx.lineWidth = 2;
 
   if (type === 'pumpkin') {
-    // Zucca: Cerchio arancio con occhi a triangolo e bocca intagliata
+    // Zucca
     ctx.beginPath();
-    ctx.arc(x + 0.5, y + 0.55, 0.32, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.5, py + s * 0.55, s * 0.35, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Picciolo verde
-    ctx.fillStyle = '#38b000';
-    ctx.fillRect(x + 0.45, y + 0.15, 0.1, 0.12);
 
-    // Occhi e bocca neri
+    // Picciolo
+    ctx.fillStyle = '#38b000';
+    ctx.fillRect(px + s * 0.45, py + s * 0.1, s * 0.1, s * 0.15);
+
+    // Occhi e Bocca
     ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.moveTo(x + 0.3, y + 0.45); ctx.lineTo(x + 0.4, y + 0.45); ctx.lineTo(x + 0.35, y + 0.38); ctx.closePath();
-    ctx.moveTo(x + 0.6, y + 0.45); ctx.lineTo(x + 0.7, y + 0.45); ctx.lineTo(x + 0.65, y + 0.38); ctx.closePath();
+    ctx.arc(px + s * 0.35, py + s * 0.45, 2, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.65, py + s * 0.45, 2, 0, Math.PI * 2);
     ctx.fill();
+
     ctx.beginPath();
-    ctx.arc(x + 0.5, y + 0.6, 0.18, 0, Math.PI);
+    ctx.arc(px + s * 0.5, py + s * 0.6, s * 0.2, 0, Math.PI);
     ctx.stroke();
 
   } else if (type === 'skull') {
-    // Teschio: Testa rotonda con cavità oculari e denti
+    // Teschio
     ctx.beginPath();
-    ctx.arc(x + 0.5, y + 0.42, 0.3, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.5, py + s * 0.4, s * 0.3, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillRect(x + 0.38, y + 0.62, 0.24, 0.16);
+    ctx.fillRect(px + s * 0.38, py + s * 0.6, s * 0.24, s * 0.18);
 
     ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.arc(x + 0.38, y + 0.42, 0.08, 0, Math.PI * 2);
-    ctx.arc(x + 0.62, y + 0.42, 0.08, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.38, py + s * 0.4, 2.5, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.62, py + s * 0.4, 2.5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillRect(x + 0.42, y + 0.68, 0.04, 0.1);
-    ctx.fillRect(x + 0.54, y + 0.68, 0.04, 0.1);
 
   } else if (type === 'ghost') {
-    // Fantasma: Corpo a dente con occhi
+    // Fantasma
     ctx.beginPath();
-    ctx.arc(x + 0.5, y + 0.4, 0.28, Math.PI, 0);
-    ctx.lineTo(x + 0.78, y + 0.75);
-    ctx.lineTo(x + 0.64, y + 0.65);
-    ctx.lineTo(x + 0.5, y + 0.75);
-    ctx.lineTo(x + 0.36, y + 0.65);
-    ctx.lineTo(x + 0.22, y + 0.75);
+    ctx.arc(px + s * 0.5, py + s * 0.4, s * 0.3, Math.PI, 0);
+    ctx.lineTo(px + s * 0.8, py + s * 0.8);
+    ctx.lineTo(px + s * 0.65, py + s * 0.7);
+    ctx.lineTo(px + s * 0.5, py + s * 0.8);
+    ctx.lineTo(px + s * 0.35, py + s * 0.7);
+    ctx.lineTo(px + s * 0.2, py + s * 0.8);
     ctx.closePath();
     ctx.fill();
 
     ctx.fillStyle = '#000000';
     ctx.beginPath();
-    ctx.arc(x + 0.4, y + 0.38, 0.05, 0, Math.PI * 2);
-    ctx.arc(x + 0.6, y + 0.38, 0.05, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.4, py + s * 0.4, 2, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.6, py + s * 0.4, 2, 0, Math.PI * 2);
     ctx.fill();
 
   } else if (type === 'bat') {
-    // Pipistrello: Ali spiegate
+    // Pipistrello
     ctx.beginPath();
-    ctx.moveTo(x + 0.5, y + 0.45);
-    ctx.quadraticCurveTo(x + 0.2, y + 0.2, x + 0.15, y + 0.5);
-    ctx.quadraticCurveTo(x + 0.35, y + 0.6, x + 0.5, y + 0.75);
-    ctx.quadraticCurveTo(x + 0.65, y + 0.6, x + 0.85, y + 0.5);
-    ctx.quadraticCurveTo(x + 0.8, y + 0.2, x + 0.5, y + 0.45);
+    ctx.moveTo(px + s * 0.5, py + s * 0.4);
+    ctx.quadraticCurveTo(px + s * 0.2, py + s * 0.1, px + s * 0.1, py + s * 0.5);
+    ctx.quadraticCurveTo(px + s * 0.3, py + s * 0.6, px + s * 0.5, py + s * 0.8);
+    ctx.quadraticCurveTo(px + s * 0.7, py + s * 0.6, px + s * 0.9, py + s * 0.5);
+    ctx.quadraticCurveTo(px + s * 0.8, py + s * 0.1, px + s * 0.5, py + s * 0.4);
     ctx.fill();
 
   } else if (type === 'bone') {
-    // Osso incrociato
-    ctx.lineWidth = 0.12;
+    // Osso
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(x + 0.25, y + 0.25); ctx.lineTo(x + 0.75, y + 0.75);
-    ctx.moveTo(x + 0.75, y + 0.25); ctx.lineTo(x + 0.25, y + 0.75);
+    ctx.moveTo(px + s * 0.25, py + s * 0.25);
+    ctx.lineTo(px + s * 0.75, py + s * 0.75);
+    ctx.moveTo(px + s * 0.75, py + s * 0.25);
+    ctx.lineTo(px + s * 0.25, py + s * 0.75);
     ctx.stroke();
 
   } else if (type === 'spider') {
-    // Ragnetto
+    // Ragno
     ctx.beginPath();
-    ctx.arc(x + 0.5, y + 0.5, 0.18, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.5, py + s * 0.5, s * 0.2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.lineWidth = 0.05;
     ctx.beginPath();
-    ctx.moveTo(x + 0.5, y + 0.5); ctx.lineTo(x + 0.2, y + 0.3);
-    ctx.moveTo(x + 0.5, y + 0.5); ctx.lineTo(x + 0.8, y + 0.3);
-    ctx.moveTo(x + 0.5, y + 0.5); ctx.lineTo(x + 0.2, y + 0.7);
-    ctx.moveTo(x + 0.5, y + 0.5); ctx.lineTo(x + 0.8, y + 0.7);
+    ctx.moveTo(px + s * 0.5, py + s * 0.5); ctx.lineTo(px + s * 0.2, py + s * 0.2);
+    ctx.moveTo(px + s * 0.5, py + s * 0.5); ctx.lineTo(px + s * 0.8, py + s * 0.2);
+    ctx.moveTo(px + s * 0.5, py + s * 0.5); ctx.lineTo(px + s * 0.2, py + s * 0.8);
+    ctx.moveTo(px + s * 0.5, py + s * 0.5); ctx.lineTo(px + s * 0.8, py + s * 0.8);
     ctx.stroke();
 
   } else if (type === 'tomb') {
-    // Pietra tombale
+    // Tomba
     ctx.beginPath();
-    ctx.arc(x + 0.5, y + 0.35, 0.25, Math.PI, 0);
-    ctx.lineTo(x + 0.75, y + 0.8);
-    ctx.lineTo(x + 0.25, y + 0.8);
+    ctx.arc(px + s * 0.5, py + s * 0.35, s * 0.25, Math.PI, 0);
+    ctx.lineTo(px + s * 0.75, py + s * 0.8);
+    ctx.lineTo(px + s * 0.25, py + s * 0.8);
     ctx.closePath();
     ctx.fill();
   }
@@ -158,17 +160,20 @@ function drawTile(ctx, x, y, value) {
   const theme = THEMES[value];
   if (!theme) return;
 
-  // 1. Sfondo del singolo blocco
+  const px = x * BLOCK_SIZE;
+  const py = y * BLOCK_SIZE;
+
+  // Sfondo quadratino
   ctx.fillStyle = theme.bg;
-  ctx.fillRect(x, y, 1, 1);
+  ctx.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
 
-  // 2. Bordo fluorescente
+  // Bordo
   ctx.strokeStyle = theme.border;
-  ctx.lineWidth = 0.08;
-  ctx.strokeRect(x + 0.04, y + 0.04, 0.92, 0.92);
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 1, py + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
 
-  // 3. Disegno della forma vettoriale di Halloween
-  drawShape(ctx, x, y, theme.type, theme.border);
+  // Icona
+  drawShape(ctx, px, py, theme.type, theme.border);
 }
 
 function drawMatrix(matrix, offset, ctx = context) {
