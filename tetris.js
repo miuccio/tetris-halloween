@@ -6,16 +6,16 @@ const nextCanvas = document.getElementById('next');
 const nextContext = nextCanvas.getContext('2d');
 nextContext.scale(20, 20);
 
-// Temi e Icone Halloween per ciascun pezzo
+// Temi, Bordi e Icone Halloween per ciascun pezzo
 const THEMES = [
   null,
-  { bg: '#3a0ca3', border: '#7209b7', icon: '🎃' }, // Zucca
-  { bg: '#2b9348', border: '#55a630', icon: '🦴' }, // Osso
-  { bg: '#d90429', border: '#ef233c', icon: '🦇' }, // Pipistrello
-  { bg: '#ffb703', border: '#fb8500', icon: '🕯️' }, // Candela
-  { bg: '#7209b7', border: '#f72585', icon: '👻' }, // Fantasma
-  { bg: '#10002b', border: '#3c096c', icon: '🪦' }, // Tomba
-  { bg: '#0077b6', border: '#00b4d8', icon: '🕷️' }  // Ragno
+  { bg: '#1c102b', border: '#ff7518', icon: '🎃' }, // Zucca
+  { bg: '#10241b', border: '#38b000', icon: '🦴' }, // Osso
+  { bg: '#2b101c', border: '#f72585', icon: '🦇' }, // Pipistrello
+  { bg: '#292010', border: '#ffb703', icon: '💀' }, // Teschio
+  { bg: '#1c1738', border: '#9d4edd', icon: '👻' }, // Fantasma
+  { bg: '#0d1829', border: '#4cc9f0', icon: '🕷️' }, // Ragno
+  { bg: '#18181c', border: '#a0a0b0', icon: '🪦' }  // Tomba
 ];
 
 const PIECES = [
@@ -54,20 +54,25 @@ function drawTile(ctx, x, y, value) {
   const theme = THEMES[value];
   if (!theme) return;
 
-  // Sfondo quadratino
+  // 1. Sfondo scuro del singolo blocco
   ctx.fillStyle = theme.bg;
   ctx.fillRect(x, y, 1, 1);
 
-  // Bordo interno stilizzato
+  // 2. Bordo fluorescente luminoso
   ctx.strokeStyle = theme.border;
   ctx.lineWidth = 0.08;
   ctx.strokeRect(x + 0.04, y + 0.04, 0.92, 0.92);
 
-  // Icona Halloween al centro del blocco
-  ctx.font = '0.65px Arial';
+  // 3. Disegno dell'icona Halloween bene in evidenza
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 0.68px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(theme.icon, x + 0.5, y + 0.55);
+  
+  // Posizionamento centrale
+  ctx.fillText(theme.icon, x + 0.5, y + 0.53);
+  ctx.restore();
 }
 
 function drawMatrix(matrix, offset, ctx = context) {
