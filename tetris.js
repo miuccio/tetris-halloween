@@ -1,54 +1,22 @@
 const canvas = document.getElementById('tetris');
+const context = canvas.getContext('2d');
+
 const nextCanvas = document.getElementById('next');
+const nextContext = nextCanvas.getContext('2d');
 
-// Elemento Audio per la musica di sottofondo
 const bgMusic = document.getElementById('bg-music');
+const BLOCK_SIZE = 20;
 
-// --- CONFIGURAZIONE SCENA 3D PRINCIPALE ---
-const scene = new THREE.Scene();
-scene.background = new THREE.Color('#0b0914');
-
-const camera = new THREE.PerspectiveCamera(45, canvas.width / canvas.height, 0.1, 1000);
-camera.position.set(6, 10, 22);
-camera.lookAt(6, 10, 0);
-
-const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-renderer.setSize(canvas.width, canvas.height);
-
-// --- CONFIGURAZIONE SCENA 3D ANTEPRIMA (NEXT) ---
-const nextScene = new THREE.Scene();
-nextScene.background = new THREE.Color('#080611');
-
-const nextCamera = new THREE.PerspectiveCamera(45, nextCanvas.width / nextCanvas.height, 0.1, 1000);
-nextCamera.position.set(2, 2, 7);
-nextCamera.lookAt(2, 2, 0);
-
-const nextRenderer = new THREE.WebGLRenderer({ canvas: nextCanvas, antialias: true });
-nextRenderer.setSize(nextCanvas.width, nextCanvas.height);
-
-// --- ILLUMINAZIONE SPETTRALE ---
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-scene.add(ambientLight);
-nextScene.add(ambientLight.clone());
-
-const pointLight1 = new THREE.PointLight(0xff7518, 2, 50); // Luce arancione zucca
-pointLight1.position.set(6, 20, 15);
-scene.add(pointLight1);
-
-const pointLight2 = new THREE.PointLight(0x9d4edd, 1.5, 50); // Luce viola spettrale
-pointLight2.position.set(6, 0, 15);
-scene.add(pointLight2);
-
-// Colori 3D per ciascun pezzo a tema Halloween
+// Temi e icone dettagliate a tema Halloween per ciascun pezzo
 const THEMES = [
   null,
-  { color: 0xff7518, emissive: 0x331100 }, // Zucca
-  { color: 0x38b000, emissive: 0x0a2200 }, // Osso
-  { color: 0xf72585, emissive: 0x330018 }, // Pipistrello
-  { color: 0xffb703, emissive: 0x332200 }, // Teschio
-  { color: 0x9d4edd, emissive: 0x180a2e }, // Fantasma
-  { color: 0x4cc9f0, emissive: 0x051829 }, // Ragno
-  { color: 0xa0a0b0, emissive: 0x222228 }  // Tomba
+  { bg: '#2b1405', border: '#ff7518', type: 'pumpkin' }, // Zucca
+  { bg: '#10241b', border: '#38b000', type: 'bone' },    // Osso
+  { bg: '#2b1022', border: '#f72585', type: 'bat' },     // Pipistrello
+  { bg: '#292310', border: '#ffb703', type: 'skull' },   // Teschio
+  { bg: '#18122e', border: '#9d4edd', type: 'ghost' },   // Fantasma
+  { bg: '#0d1c29', border: '#4cc9f0', type: 'spider' },  // Ragno
+  { bg: '#1c1c24', border: '#a0a0b0', type: 'tomb' }      // Tomba
 ];
 
 const PIECES = [
@@ -83,57 +51,139 @@ let dropInterval = 1000;
 let lastTime = 0;
 let isPaused = true;
 
-// Gruppi 3D per gestire la cancellazione e il ridisegno rapido senza ricreare tutto
-const arenaGroup = new THREE.Group();
-scene.add(arenaGroup);
+// Disegno delle icone spettrali all'interno dei blocchi
+function drawShape(ctx, px, py, type, color) {
+  const s = BLOCK_SIZE;
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
 
-let playerMeshGroup = new THREE.Group();
-scene.add(playerMeshGroup);
+  if (type === 'pumpkin') {
+    ctx.beginPath();
+    ctx.arc(px + s * 0.5, py + s * 0.55, s * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#38b000';
+    ctx.fillRect(px + s * 0.45, py + s * 0.1, s * 0.1, s * 0.15);
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(px + s * 0.35, py + s * 0.45, 2, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.65, py + s * 0.45, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px + s * 0.5, py + s * 0.6, s * 0.2, 0, Math.PI);
+    ctx.stroke();
 
-let nextMeshGroup = new THREE.Group();
-nextScene.add(nextMeshGroup);
+  } else if (type === 'skull') {
+    ctx.beginPath();
+    ctx.arc(px + s * 0.5, py + s * 0.4, s * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(px + s * 0.38, py + s * 0.6, s * 0.24, s * 0.18);
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(px + s * 0.38, py + s * 0.4, 2.5, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.62, py + s * 0.4, 2.5, 0, Math.PI * 2);
+    ctx.fill();
 
-const boxGeometry = new THREE.BoxGeometry(0.92, 0.92, 0.92);
+  } else if (type === 'ghost') {
+    ctx.beginPath();
+    ctx.arc(px + s * 0.5, py + s * 0.4, s * 0.3, Math.PI, 0);
+    ctx.lineTo(px + s * 0.8, py + s * 0.8);
+    ctx.lineTo(px + s * 0.65, py + s * 0.7);
+    ctx.lineTo(px + s * 0.5, py + s * 0.8);
+    ctx.lineTo(px + s * 0.35, py + s * 0.7);
+    ctx.lineTo(px + s * 0.2, py + s * 0.8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(px + s * 0.4, py + s * 0.4, 2, 0, Math.PI * 2);
+    ctx.arc(px + s * 0.6, py + s * 0.4, 2, 0, Math.PI * 2);
+    ctx.fill();
 
-function updateMeshGroup(group, matrix, offset) {
-  while(group.children.length > 0) { 
-    group.remove(group.children[0]); 
+  } else if (type === 'bat') {
+    ctx.beginPath();
+    ctx.moveTo(px + s * 0.5, py + s * 0.4);
+    ctx.quadraticCurveTo(px + s * 0.2, py + s * 0.1, px + s * 0.1, py + s * 0.5);
+    ctx.quadraticCurveTo(px + s * 0.3, py + s * 0.6, px + s * 0.5, py + s * 0.8);
+    ctx.quadraticCurveTo(px + s * 0.7, py + s * 0.6, px + s * 0.9, py + s * 0.5);
+    ctx.quadraticCurveTo(px + s * 0.8, py + s * 0.1, px + s * 0.5, py + s * 0.4);
+    ctx.fill();
+
+  } else if (type === 'bone') {
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(px + s * 0.25, py + s * 0.25);
+    ctx.lineTo(px + s * 0.75, py + s * 0.75);
+    ctx.moveTo(px + s * 0.75, py + s * 0.25);
+    ctx.lineTo(px + s * 0.25, py + s * 0.75);
+    ctx.stroke();
+
+  } else if (type === 'spider') {
+    ctx.beginPath();
+    ctx.arc(px + s * 0.5, py + s * 0.5, s * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(px + s * 0.5, py + s * 0.5); ctx.lineTo(px + s * 0.2, py + s * 0.2);
+    ctx.moveTo(px + s * 0.5, py + s * 0.5); ctx.lineTo(px + s * 0.8, py + s * 0.2);
+    ctx.moveTo(px + s * 0.5, py + s * 0.5); ctx.lineTo(px + s * 0.2, py + s * 0.8);
+    ctx.moveTo(px + s * 0.5, py + s * 0.5); ctx.lineTo(px + s * 0.8, py + s * 0.8);
+    ctx.stroke();
+
+  } else if (type === 'tomb') {
+    ctx.beginPath();
+    ctx.arc(px + s * 0.5, py + s * 0.35, s * 0.25, Math.PI, 0);
+    ctx.lineTo(px + s * 0.75, py + s * 0.8);
+    ctx.lineTo(px + s * 0.25, py + s * 0.8);
+    ctx.closePath();
+    ctx.fill();
   }
 
+  ctx.restore();
+}
+
+function drawTile(ctx, x, y, value) {
+  const theme = THEMES[value];
+  if (!theme) return;
+
+  const px = x * BLOCK_SIZE;
+  const py = y * BLOCK_SIZE;
+
+  ctx.fillStyle = theme.bg;
+  ctx.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
+
+  ctx.strokeStyle = theme.border;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 1, py + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+
+  drawShape(ctx, px, py, theme.type, theme.border);
+}
+
+function drawMatrix(matrix, offset, ctx = context) {
   matrix.forEach((row, y) => {
     row.forEach((value, x) => {
       if (value !== 0) {
-        const theme = THEMES[value];
-        const material = new THREE.MeshStandardMaterial({
-          color: theme.color,
-          emissive: theme.emissive,
-          roughness: 0.2,
-          metalness: 0.3
-        });
-        const cube = new THREE.Mesh(boxGeometry, material);
-        // Inverte la Y perché nel 3D l'asse va verso l'alto
-        cube.position.set(x + offset.x, -(y + offset.y), 0);
-        group.add(cube);
+        drawTile(ctx, x + offset.x, y + offset.y, value);
       }
     });
   });
 }
 
-function draw() {
-  updateMeshGroup(arenaGroup, arena, {x: 0, y: 0});
-  if (player.matrix) {
-    updateMeshGroup(playerMeshGroup, player.matrix, player.pos);
-  }
-  renderer.render(scene, camera);
-}
-
 function drawNext() {
+  nextContext.fillStyle = '#080611';
+  nextContext.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
   if (player.next) {
     const xOffset = (4 - player.next[0].length) / 2;
     const yOffset = (4 - player.next.length) / 2;
-    updateMeshGroup(nextMeshGroup, player.next, {x: xOffset, y: yOffset});
+    drawMatrix(player.next, {x: xOffset, y: yOffset}, nextContext);
   }
-  nextRenderer.render(nextScene, nextCamera);
+}
+
+function draw() {
+  context.fillStyle = '#0b0914';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  drawMatrix(arena, {x: 0, y: 0});
+  if (player.matrix) drawMatrix(player.matrix, player.pos);
 }
 
 function arenaSweep() {
@@ -279,7 +329,7 @@ function updateStats() {
   document.getElementById('lines').innerText = player.lines;
 }
 
-// Eventi tastiera e touch
+// Controlli da tastiera e touch
 document.addEventListener('keydown', event => {
   if (isPaused) return;
   if (event.keyCode === 37) playerMove(-1);
@@ -304,7 +354,6 @@ document.getElementById('start-btn').addEventListener('click', () => {
     update();
 
     if (bgMusic) {
-      bgMusic.loop = true; // <-- Attiva il loop qui
       bgMusic.volume = 0.4;
       bgMusic.play().catch(e => console.log("Autoplay bloccato:", e));
     }
@@ -318,7 +367,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
 
 updateStats();
 
-// Inizializzazione 3D
+// Inizializzazione immediata della grafica e dell'anteprima
 player.next = getRandomPiece();
 drawNext();
 draw();
